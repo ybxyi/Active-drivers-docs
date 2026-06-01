@@ -172,17 +172,11 @@ let tokenClient, accessToken;
 
 // ── AUTH ──────────────────────────────────────────────────────────────────────
 function initGoogleAPI() {
-  gapi.load('client', async () => {
-    await gapi.client.init({
-      apiKey: API_KEY,
-      discoveryDocs: ['https://sheets.googleapis.com/$discovery/rest?version=v4']
-    });
-  });
   tokenClient = google.accounts.oauth2.initTokenClient({
     client_id: CLIENT_ID,
     scope: SCOPES,
     callback: (resp) => {
-      if (resp.error) return;
+      if (resp.error) { console.error('OAuth error', resp); return; }
       accessToken = resp.access_token;
       showApp();
     }
@@ -415,11 +409,6 @@ renderSheetList();
 if (sheets.length) { /* load after auth */ }
 </script>
 
-<script src="https://accounts.google.com/gsi/client" onload="gapiLoaded=true; tryInit()"></script>
-<script src="https://apis.google.com/js/api.js" onload="gsLoaded=true; tryInit()"></script>
-<script>
-var gapiLoaded=false, gsLoaded=false;
-function tryInit(){ if(gapiLoaded && gsLoaded) initGoogleAPI(); }
-</script>
+<script src="https://accounts.google.com/gsi/client" onload="initGoogleAPI()"></script>
 </body>
 </html>
