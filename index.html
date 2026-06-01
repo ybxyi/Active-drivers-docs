@@ -411,12 +411,15 @@ function setProgress(p) { document.getElementById('progress').style.width = p + 
 
 document.getElementById('search').addEventListener('input', renderTable);
 
-window.onload = () => {
-  if (typeof gapi !== 'undefined') initGoogleAPI();
-};
+renderSheetList();
+if (sheets.length) { /* load after auth */ }
 </script>
 
-<script src="https://apis.google.com/js/api.js" onload="initGoogleAPI()"></script>
-<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script src="https://accounts.google.com/gsi/client" onload="gapiLoaded=true; tryInit()"></script>
+<script src="https://apis.google.com/js/api.js" onload="gsLoaded=true; tryInit()"></script>
+<script>
+var gapiLoaded=false, gsLoaded=false;
+function tryInit(){ if(gapiLoaded && gsLoaded) initGoogleAPI(); }
+</script>
 </body>
 </html>
