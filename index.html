@@ -184,7 +184,11 @@ function initGoogleAPI() {
 }
 
 function signIn() {
-  tokenClient.requestAccessToken();
+  if (!tokenClient) {
+    alert('Google sign-in not ready yet. Please wait a moment and try again.');
+    return;
+  }
+  tokenClient.requestAccessToken({ prompt: 'consent' });
 }
 
 function signOut() {
@@ -409,6 +413,17 @@ renderSheetList();
 if (sheets.length) { /* load after auth */ }
 </script>
 
-<script src="https://accounts.google.com/gsi/client" onload="initGoogleAPI()"></script>
+<script>
+  // Retry init in case GSI loads after DOM
+  function waitForGSI() {
+    if (typeof google !== 'undefined' && google.accounts) {
+      initGoogleAPI();
+    } else {
+      setTimeout(waitForGSI, 100);
+    }
+  }
+  setTimeout(waitForGSI, 100);
+</script>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 </body>
 </html>
