@@ -297,11 +297,13 @@ async function loadAllSheets() {
 }
 
 async function fetchSheet(sheetId, label) {
-  const resp = await gapi.client.sheets.spreadsheets.values.get({
-    spreadsheetId: sheetId,
-    range: 'Active'
+  const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/Active`;
+  const resp = await fetch(url, {
+    headers: { Authorization: 'Bearer ' + accessToken }
   });
-  const rows = resp.result.values || [];
+  if (!resp.ok) throw new Error('HTTP ' + resp.status);
+  const data = await resp.json();
+  const rows = data.values || [];
   if (rows.length < 2) return [];
   const header = rows[0].map(h => h.trim());
   return rows.slice(1).map(row => {
