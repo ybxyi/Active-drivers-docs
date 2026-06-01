@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Active Drivers — Missing Docs</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0e1117;
+  --surface: #161b27;
+  --surface2: #1e2535;
+  --border: #2a3044;
+  --accent: #4f8cff;
+  --red: #ff4d6d;
+  --green: #2dd4a0;
+  --text: #e4e9f5;
+  --muted: #5b6a8a;
+  --font-mono: 'DM Mono', monospace;
+  --font: 'DM Sans', sans-serif;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: var(--font); font-size: 14px; min-height: 100vh; }
+
+#login-screen { display: flex; align-items: center; justify-content: center; min-height: 100vh; }
+.login-box { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 48px 52px; text-align: center; width: 380px; }
+.login-title { font-family: var(--font-mono); font-size: 20px; color: var(--accent); margin-bottom: 6px; }
+.login-sub { color: var(--muted); font-size: 13px; margin-bottom: 32px; line-height: 1.6; }
+#google-signin-btn { display: flex; align-items: center; justify-content: center; gap: 10px; background: #fff; color: #333; border: none; border-radius: 10px; padding: 12px 20px; font-size: 14px; font-weight: 500; cursor: pointer; width: 100%; font-family: var(--font); transition: opacity 0.18s; }
+#google-signin-btn:hover { opacity: 0.88; }
+
+#app { display: none; flex-direction: column; min-height: 100vh; }
+header { display: flex; align-items: center; justify-content: space-between; padding: 14px 28px; border-bottom: 1px solid var(--border); background: var(--surface); position: sticky; top: 0; z-index: 100; gap: 16px; flex-wrap: wrap; }
+.logo { font-family: var(--font-mono); font-size: 15px; color: var(--accent); white-space: nowrap; }
+.header-right { display: flex; gap: 10px; align-items: center; }
+#user-info { color: var(--muted); font-size: 12px; }
+.btn { padding: 7px 14px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface2); color: var(--text); font-size: 12px; cursor: pointer; font-family: var(--font); white-space: nowrap; display: flex; align-items: center; gap: 6px; transition: border-color 0.15s; }
+.btn:hover { border-color: var(--accent); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 500; }
+.btn.primary:hover { opacity: 0.88; }
+
+.search-bar { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 7px 12px; display: flex; align-items: center; gap: 8px; }
+.search-bar input { background: transparent; border: none; outline: none; color: var(--text); font-size: 13px; font-family: var(--font); width: 200px; }
+.search-bar input::placeholder { color: var(--muted); }
+
+.stats-row { display: flex; gap: 12px; padding: 18px 28px 0; flex-wrap: wrap; }
+.stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 14px 20px; min-width: 120px; }
+.stat-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; font-family: var(--font-mono); margin-bottom: 4px; }
+.stat-value { font-size: 26px; font-weight: 600; font-family: var(--font-mono); }
+.stat-value.red { color: var(--red); }
+.stat-value.green { color: var(--green); }
+.stat-value.blue { color: var(--accent); }
+
+.sheets-panel { margin: 16px 28px 0; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+.sheets-header { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; cursor: pointer; user-select: none; }
+.sheets-header span { font-size: 13px; font-weight: 500; }
+.sheets-body { padding: 14px 16px; display: none; border-top: 1px solid var(--border); }
+.sheets-body.open { display: block; }
+.sheet-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
+.sheet-row { display: flex; align-items: center; gap: 8px; }
+.sheet-row input { background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; padding: 7px 10px; color: var(--text); font-size: 13px; font-family: var(--font); outline: none; }
+.sheet-row input:focus { border-color: var(--accent); }
+.remove-btn { width: 28px; height: 28px; border-radius: 6px; border: 1px solid var(--border); background: transparent; color: var(--muted); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 18px; line-height: 1; flex-shrink: 0; }
+.remove-btn:hover { color: var(--red); border-color: var(--red); }
+.add-sheet-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.add-sheet-row input { background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; padding: 7px 10px; color: var(--text); font-size: 13px; font-family: var(--font); outline: none; }
+.add-sheet-row input:focus { border-color: var(--accent); }
+
+.filters-row { display: flex; gap: 8px; padding: 14px 28px; flex-wrap: wrap; align-items: center; }
+.filter-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+.filter-chip { padding: 5px 12px; border-radius: 20px; border: 1px solid var(--border); background: var(--surface2); color: var(--muted); font-size: 12px; cursor: pointer; transition: all 0.15s; white-space: nowrap; font-family: var(--font); }
+.filter-chip:hover { border-color: var(--accent); color: var(--text); }
+.filter-chip.active { border-color: var(--accent); background: rgba(79,140,255,0.12); color: var(--accent); }
+.filter-chip.red.active { border-color: var(--red); background: rgba(255,77,109,0.1); color: var(--red); }
+select.filter-select { background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; padding: 5px 10px; color: var(--text); font-size: 12px; font-family: var(--font); outline: none; cursor: pointer; }
+
+.table-wrap { padding: 0 28px 40px; overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+thead th { background: var(--surface); color: var(--muted); font-weight: 500; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--border); white-space: nowrap; font-family: var(--font-mono); }
+tbody tr { border-bottom: 1px solid var(--border); transition: background 0.1s; }
+tbody tr:hover { background: var(--surface); }
+td { padding: 10px 12px; vertical-align: middle; }
+td.driver-name { font-weight: 500; color: var(--text); white-space: nowrap; }
+td.sheet-tag { font-size: 11px; color: var(--muted); font-family: var(--font-mono); white-space: nowrap; }
+
+.missing-docs { display: flex; flex-wrap: wrap; gap: 4px; }
+.doc-tag { padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: 500; font-family: var(--font-mono); border: 1px solid; white-space: nowrap; background: rgba(255,77,109,0.1); color: var(--red); border-color: rgba(255,77,109,0.3); }
+.doc-ok { font-size: 12px; color: var(--green); }
+.missing-count { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; background: rgba(255,77,109,0.15); color: var(--red); font-size: 11px; font-weight: 600; font-family: var(--font-mono); }
+
+.loading { text-align: center; padding: 60px; color: var(--muted); font-family: var(--font-mono); font-size: 13px; }
+.spinner { display: inline-block; width: 18px; height: 18px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.7s linear infinite; margin-right: 8px; vertical-align: middle; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.empty { text-align: center; padding: 60px; color: var(--muted); font-size: 13px; }
+.progress-bar { position: fixed; top: 0; left: 0; height: 2px; background: var(--accent); width: 0%; transition: width 0.3s; z-index: 200; }
+</style>
+</head>
+<body>
+<div class="progress-bar" id="progress"></div>
+
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-title">Active Drivers</div>
+    <div class="login-sub">Missing Documents Dashboard<br>Sign in with Google to access your sheets</div>
+    <button id="google-signin-btn" onclick="signIn()">
+      <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.09 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.96 2.29-8.16 2.29-6.26 0-11.57-3.59-13.46-8.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+      Sign in with Google
+    </button>
+  </div>
+</div>
+
+<div id="app">
+  <header>
+    <div class="logo">⬡ Active Drivers</div>
+    <div class="search-bar">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <input type="text" id="search" placeholder="Search driver..." />
+    </div>
+    <div class="header-right">
+      <button class="btn" onclick="loadAllSheets()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+        Refresh
+      </button>
+      <div id="user-info"></div>
+      <button class="btn" onclick="signOut()">Sign out</button>
+    </div>
+  </header>
+
+  <div class="stats-row" id="stats-row"></div>
+
+  <div class="sheets-panel">
+    <div class="sheets-header" onclick="toggleSheets()">
+      <span>📋 Google Sheets</span>
+      <svg id="sheets-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+    <div class="sheets-body open" id="sheets-body">
+      <div class="sheet-list" id="sheet-list"></div>
+      <div class="add-sheet-row">
+        <input type="text" id="new-sheet-id" placeholder="Sheet ID or full URL" style="flex:2" />
+        <input type="text" id="new-sheet-name" placeholder="Label (e.g. Ali Uz Trans)" style="flex:1" />
+        <button class="btn primary" onclick="addSheet()">+ Add</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="filters-row">
+    <span class="filter-label">Show:</span>
+    <button class="filter-chip active" onclick="setFilter('all',this)">All drivers</button>
+    <button class="filter-chip red" onclick="setFilter('missing',this)">Missing docs only</button>
+    <span class="filter-label" style="margin-left:8px">Doc:</span>
+    <select id="doc-filter" class="filter-select" onchange="renderTable()">
+      <option value="">All docs</option>
+    </select>
+  </div>
+
+  <div id="table-area" class="table-wrap">
+    <div class="empty">Add a Google Sheet and click Refresh.</div>
+  </div>
+</div>
+
+<script>
+const CLIENT_ID = '524732053052-vs90j0q4lhts9pi0i8gp5ld89i55gpd7.apps.googleusercontent.com';
+const API_KEY   = 'AIzaSyC_v7iYHCmMJHsxJeAxC-OCPZ9lObioPkY';
+const SCOPES    = 'https://www.googleapis.com/auth/spreadsheets.readonly';
+
+const DOC_COLS = ['Consent','CDL','CDL Back','Medical Card','NRC ME','MVR','PSP','CH','DrugTest','CCF','Application','Safety','Other'];
+
+let sheets = JSON.parse(localStorage.getItem('active_sheets_v3') || '[]');
+let allDrivers = [];
+let filterMode = 'all';
+let tokenClient, accessToken;
+
+// ── AUTH ──────────────────────────────────────────────────────────────────────
+function initGoogleAPI() {
+  gapi.load('client', async () => {
+    await gapi.client.init({
+      apiKey: API_KEY,
+      discoveryDocs: ['https://sheets.googleapis.com/$discovery/rest?version=v4']
+    });
+  });
+  tokenClient = google.accounts.oauth2.initTokenClient({
+    client_id: CLIENT_ID,
+    scope: SCOPES,
+    callback: (resp) => {
+      if (resp.error) return;
+      accessToken = resp.access_token;
+      showApp();
+    }
+  });
+}
+
+function signIn() {
+  tokenClient.requestAccessToken();
+}
+
+function signOut() {
+  if (accessToken) google.accounts.oauth2.revoke(accessToken);
+  accessToken = null;
+  allDrivers = [];
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+}
+
+function showApp() {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'flex';
+  document.getElementById('user-info').textContent = '';
+  renderSheetList();
+  if (sheets.length) loadAllSheets();
+}
+
+// ── SHEETS MANAGER ────────────────────────────────────────────────────────────
+function saveSheets() { localStorage.setItem('active_sheets_v3', JSON.stringify(sheets)); }
+
+function addSheet() {
+  let id = document.getElementById('new-sheet-id').value.trim();
+  const name = document.getElementById('new-sheet-name').value.trim() || 'Sheet ' + (sheets.length + 1);
+  if (!id) return;
+  const m = id.match(/\/spreadsheets\/d\/([a-zA-Z0-9_-]+)/);
+  if (m) id = m[1];
+  if (sheets.find(s => s.id === id)) { alert('Already added'); return; }
+  sheets.push({ id, name });
+  saveSheets();
+  document.getElementById('new-sheet-id').value = '';
+  document.getElementById('new-sheet-name').value = '';
+  renderSheetList();
+}
+
+function removeSheet(id) {
+  sheets = sheets.filter(s => s.id !== id);
+  saveSheets();
+  renderSheetList();
+  allDrivers = allDrivers.filter(d => d._sheetId !== id);
+  renderStats();
+  renderTable();
+}
+
+function renameSheet(id, val) {
+  const s = sheets.find(x => x.id === id);
+  if (s) { s.name = val; saveSheets(); }
+}
+
+function renderSheetList() {
+  const el = document.getElementById('sheet-list');
+  if (!sheets.length) {
+    el.innerHTML = '<div style="color:var(--muted);font-size:12px;padding:2px 0">No sheets yet.</div>';
+    return;
+  }
+  el.innerHTML = sheets.map(s => `
+    <div class="sheet-row">
+      <input type="text" style="width:160px;flex-shrink:0" value="${esc(s.name)}" onchange="renameSheet('${s.id}',this.value)" />
+      <input type="text" value="${esc(s.id)}" readonly style="flex:1;color:var(--muted);font-family:var(--font-mono);font-size:11px" />
+      <div id="status-${s.id}" style="font-size:11px;font-family:var(--font-mono);width:60px;flex-shrink:0;color:var(--muted)"></div>
+      <button class="remove-btn" onclick="removeSheet('${s.id}')">×</button>
+    </div>
+  `).join('');
+}
+
+function esc(s) { return (s||'').replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
+
+function toggleSheets() {
+  const body = document.getElementById('sheets-body');
+  body.classList.toggle('open');
+  document.getElementById('sheets-arrow').style.transform = body.classList.contains('open') ? 'rotate(180deg)' : '';
+}
+
+// ── DATA ──────────────────────────────────────────────────────────────────────
+async function loadAllSheets() {
+  if (!sheets.length) {
+    document.getElementById('table-area').innerHTML = '<div class="empty">Add a Google Sheet above.</div>';
+    return;
+  }
+  setProgress(10);
+  document.getElementById('table-area').innerHTML = '<div class="loading"><span class="spinner"></span>Loading drivers…</div>';
+  allDrivers = [];
+
+  for (let i = 0; i < sheets.length; i++) {
+    const s = sheets[i];
+    const statusEl = document.getElementById('status-' + s.id);
+    if (statusEl) { statusEl.textContent = '⟳'; statusEl.style.color = 'var(--muted)'; }
+    try {
+      const rows = await fetchSheet(s.id, s.name);
+      allDrivers.push(...rows);
+      if (statusEl) { statusEl.textContent = '✓ ' + rows.length; statusEl.style.color = 'var(--green)'; }
+    } catch(e) {
+      console.warn(s.name, e.message);
+      if (statusEl) { statusEl.textContent = '✗ err'; statusEl.style.color = 'var(--red)'; }
+    }
+    setProgress(10 + 80 * (i + 1) / sheets.length);
+  }
+
+  populateDocFilter();
+  renderStats();
+  renderTable();
+  setProgress(100);
+  setTimeout(() => setProgress(0), 500);
+}
+
+async function fetchSheet(sheetId, label) {
+  const resp = await gapi.client.sheets.spreadsheets.values.get({
+    spreadsheetId: sheetId,
+    range: 'Active'
+  });
+  const rows = resp.result.values || [];
+  if (rows.length < 2) return [];
+  const header = rows[0].map(h => h.trim());
+  return rows.slice(1).map(row => {
+    const obj = { _sheetId: sheetId, _sheetName: label };
+    header.forEach((h, i) => { obj[h] = (row[i] || '').toString().trim(); });
+    return obj;
+  }).filter(d => d['Driver name'] || d['Driver Name']);
+}
+
+// ── LOGIC ─────────────────────────────────────────────────────────────────────
+function isPresent(val) {
+  if (!val) return false;
+  const v = val.toString().trim().toUpperCase();
+  if (v === '' || v === 'FALSE' || v === 'NO') return false;
+  return true;
+}
+
+function getMissing(driver) {
+  return DOC_COLS.filter(col => {
+    const val = driver[col] !== undefined
+      ? driver[col]
+      : Object.keys(driver).reduce((acc, k) => k.toLowerCase() === col.toLowerCase() ? driver[k] : acc, undefined);
+    return !isPresent(val);
+  });
+}
+
+// ── RENDER ────────────────────────────────────────────────────────────────────
+function setFilter(mode, el) {
+  filterMode = mode;
+  document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  renderTable();
+}
+
+function populateDocFilter() {
+  const sel = document.getElementById('doc-filter');
+  sel.innerHTML = '<option value="">All docs</option>' +
+    DOC_COLS.map(d => `<option value="${d}">${d}</option>`).join('');
+}
+
+function renderStats() {
+  const total = allDrivers.length;
+  const withMissing = allDrivers.filter(d => getMissing(d).length > 0).length;
+  const clean = total - withMissing;
+  const docCounts = {};
+  DOC_COLS.forEach(col => { docCounts[col] = allDrivers.filter(d => !isPresent(d[col])).length; });
+  const top = Object.entries(docCounts).sort((a,b) => b[1]-a[1]).filter(x => x[1] > 0).slice(0,4);
+
+  document.getElementById('stats-row').innerHTML = `
+    <div class="stat-card"><div class="stat-label">Total</div><div class="stat-value blue">${total}</div></div>
+    <div class="stat-card"><div class="stat-label">Missing docs</div><div class="stat-value red">${withMissing}</div></div>
+    <div class="stat-card"><div class="stat-label">All clear</div><div class="stat-value green">${clean}</div></div>
+    ${top.map(([doc,count]) => `<div class="stat-card"><div class="stat-label">${doc}</div><div class="stat-value red">${count}</div></div>`).join('')}
+  `;
+}
+
+function renderTable() {
+  const q = document.getElementById('search').value.toLowerCase();
+  const docFilter = document.getElementById('doc-filter').value;
+
+  let list = allDrivers.filter(d => {
+    const name = (d['Driver name'] || d['Driver Name'] || '').toLowerCase();
+    if (q && !name.includes(q)) return false;
+    const missing = getMissing(d);
+    if (filterMode === 'missing' && missing.length === 0) return false;
+    if (docFilter && !missing.includes(docFilter)) return false;
+    return true;
+  });
+
+  if (!list.length) {
+    document.getElementById('table-area').innerHTML = '<div class="empty">No drivers match the current filters.</div>';
+    return;
+  }
+
+  list.sort((a,b) => getMissing(b).length - getMissing(a).length);
+
+  document.getElementById('table-area').innerHTML = `
+    <table>
+      <thead><tr>
+        <th>#</th><th>Driver</th><th>Sheet</th><th style="text-align:center">Missing</th><th>Missing Docs</th>
+      </tr></thead>
+      <tbody>
+        ${list.map((d,i) => {
+          const name = d['Driver name'] || d['Driver Name'] || '—';
+          const missing = getMissing(d);
+          return `<tr>
+            <td style="color:var(--muted);font-family:var(--font-mono);font-size:11px">${i+1}</td>
+            <td class="driver-name">${esc(name)}</td>
+            <td class="sheet-tag">${esc(d._sheetName)}</td>
+            <td style="text-align:center">${missing.length
+              ? `<span class="missing-count">${missing.length}</span>`
+              : `<span class="doc-ok">✓</span>`
+            }</td>
+            <td>${missing.length
+              ? `<div class="missing-docs">${missing.map(m => `<span class="doc-tag">${m}</span>`).join('')}</div>`
+              : `<span class="doc-ok">All present</span>`
+            }</td>
+          </tr>`;
+        }).join('')}
+      </tbody>
+    </table>`;
+}
+
+function setProgress(p) { document.getElementById('progress').style.width = p + '%'; }
+
+document.getElementById('search').addEventListener('input', renderTable);
+
+window.onload = () => {
+  if (typeof gapi !== 'undefined') initGoogleAPI();
+};
+</script>
+
+<script src="https://apis.google.com/js/api.js" onload="initGoogleAPI()"></script>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+</body>
+</html>
